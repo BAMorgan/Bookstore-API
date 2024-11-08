@@ -12,25 +12,21 @@ const key = {
 };
 const utilities_1 = require("../../core/utilities");
 const isStringProvided = utilities_1.validationFunctions.isStringProvided;
-const isNumberProvided = utilities_1.validationFunctions.isNumberProvided;
+//const isNumberProvided = validationFunctions.isNumberProvided;
 const generateHash = utilities_1.credentialingFunctions.generateHash;
 const generateSalt = utilities_1.credentialingFunctions.generateSalt;
 const registerRouter = express_1.default.Router();
 exports.registerRouter = registerRouter;
-// Add more/your own password validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
-const isValidPassword = (password) => isStringProvided(password) && password.length > 7;
-// Add more/your own phone number validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
-const isValidPhone = (phone) => isStringProvided(phone) && phone.length >= 10;
-// Add more/your own role validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
-const isValidRole = (priority) => utilities_1.validationFunctions.isNumberProvided(priority) &&
-    parseInt(priority) >= 1 &&
-    parseInt(priority) <= 5;
-// Add more/your own email validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
-const isValidEmail = (email) => isStringProvided(email) && email.includes('@');
+// Password must be at least 8 characters, contain one uppercase letter, one lowercase letter, and one number
+const isValidPassword = (password) => isStringProvided(password) &&
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password);
+// Phone number validation requires at least 10 digits (no special characters)
+const isValidPhone = (phone) => isStringProvided(phone) && /^\d{10,}$/.test(phone);
+// Email validation requires the "@" symbol and a domain name
+const isValidEmail = (email) => isStringProvided(email) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // middleware functions may be defined elsewhere!
 const emailMiddlewareCheck = (request, response, next) => {
     if (isValidEmail(request.body.email)) {
@@ -66,7 +62,6 @@ const emailMiddlewareCheck = (request, response, next) => {
  * @apiError (400: Invalid Password) {String} message "Invalid or missing password  - please refer to documentation"
  * @apiError (400: Invalid Phone) {String} message "Invalid or missing phone number  - please refer to documentation"
  * @apiError (400: Invalid Email) {String} message "Invalid or missing email  - please refer to documentation"
- * @apiError (400: Invalid Role) {String} message "Invalid or missing role  - please refer to documentation"
  * @apiError (400: Username exists) {String} message "Username exists"
  * @apiError (400: Email exists) {String} message "Email exists"
  *
@@ -103,15 +98,6 @@ registerRouter.post('/register', emailMiddlewareCheck, // these middleware funct
     else {
         response.status(400).send({
             message: 'Invalid or missing password  - please refer to documentation',
-        });
-    }
-}, (request, response, next) => {
-    if (isValidRole(request.body.role)) {
-        next();
-    }
-    else {
-        response.status(400).send({
-            message: 'Invalid or missing role  - please refer to documentation',
         });
     }
 }, (request, response, next) => {

@@ -7,7 +7,7 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const routes_1 = require("./routes");
 const app = (0, express_1.default)();
-const PORT = parseInt(process.env.PORT) || 4001;
+const PORT = parseInt(process.env.PORT) || 4000;
 app.use((0, cors_1.default)());
 /*
  * This middleware function parses JSON in the body of POST requests
@@ -15,6 +15,7 @@ app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(routes_1.routes);
 app.get('/', (request, response) => {
+    console.log('This can only be seen in docker');
     response.send('<h1>Hello World!</h1>');
 });
 app.listen(PORT, () => {

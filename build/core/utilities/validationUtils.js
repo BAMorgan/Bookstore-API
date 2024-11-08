@@ -45,6 +45,7 @@ function isNumber(x) {
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
+    isNumber,
 };
 exports.validationFunctions = validationFunctions;
 //# sourceMappingURL=validationUtils.js.map

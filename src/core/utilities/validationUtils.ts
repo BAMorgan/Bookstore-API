@@ -49,6 +49,7 @@ function isNumber(x: any): x is number {
 const validationFunctions = {
     isStringProvided,
     isNumberProvided,
+    isNumber,
 };
 
 export { validationFunctions };

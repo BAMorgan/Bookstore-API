@@ -14,7 +14,7 @@ import {
 } from '../../core/utilities';
 
 const isStringProvided = validationFunctions.isStringProvided;
-const isNumberProvided = validationFunctions.isNumberProvided;
+//const isNumberProvided = validationFunctions.isNumberProvided;
 const generateHash = credentialingFunctions.generateHash;
 const generateSalt = credentialingFunctions.generateSalt;
 
@@ -24,27 +24,21 @@ export interface IUserRequest extends Request {
     id: number;
 }
 
-// Add more/your own password validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
+// Password must be at least 8 characters, contain one uppercase letter, one lowercase letter, and one number
 const isValidPassword = (password: string): boolean =>
-    isStringProvided(password) && password.length > 7;
+    isStringProvided(password) &&
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /\d/.test(password);
 
-// Add more/your own phone number validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
+// Phone number validation requires at least 10 digits (no special characters)
 const isValidPhone = (phone: string): boolean =>
-    isStringProvided(phone) && phone.length >= 10;
+    isStringProvided(phone) && /^\d{10,}$/.test(phone);
 
-// Add more/your own role validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
-const isValidRole = (priority: string): boolean =>
-    validationFunctions.isNumberProvided(priority) &&
-    parseInt(priority) >= 1 &&
-    parseInt(priority) <= 5;
-
-// Add more/your own email validation here. The *rules* must be documented
-// and the client-side validation should match these rules.
+// Email validation requires the "@" symbol and a domain name
 const isValidEmail = (email: string): boolean =>
-    isStringProvided(email) && email.includes('@');
+    isStringProvided(email) && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 // middleware functions may be defined elsewhere!
 const emailMiddlewareCheck = (
@@ -56,7 +50,8 @@ const emailMiddlewareCheck = (
         next();
     } else {
         response.status(400).send({
-            message: 'Invalid or missing email - please refer to documentation',
+            message:
+                'Invalid or missing email  - please refer to documentation',
         });
     }
 };
@@ -85,7 +80,6 @@ const emailMiddlewareCheck = (
  * @apiError (400: Invalid Password) {String} message "Invalid or missing password  - please refer to documentation"
  * @apiError (400: Invalid Phone) {String} message "Invalid or missing phone number  - please refer to documentation"
  * @apiError (400: Invalid Email) {String} message "Invalid or missing email  - please refer to documentation"
- * @apiError (400: Invalid Role) {String} message "Invalid or missing role  - please refer to documentation"
  * @apiError (400: Username exists) {String} message "Username exists"
  * @apiError (400: Email exists) {String} message "Email exists"
  *
@@ -111,11 +105,13 @@ registerRouter.post(
     (request: Request, response: Response, next: NextFunction) => {
         if (isValidPhone(request.body.phone)) {
             next();
+            return;
         } else {
             response.status(400).send({
                 message:
                     'Invalid or missing phone number  - please refer to documentation',
             });
+            return;
         }
     },
     (request: Request, response: Response, next: NextFunction) => {
@@ -128,16 +124,7 @@ registerRouter.post(
             });
         }
     },
-    (request: Request, response: Response, next: NextFunction) => {
-        if (isValidRole(request.body.role)) {
-            next();
-        } else {
-            response.status(400).send({
-                message:
-                    'Invalid or missing role  - please refer to documentation',
-            });
-        }
-    },
+    
     (request: IUserRequest, response: Response, next: NextFunction) => {
         const theQuery =
             'INSERT INTO Account(firstname, lastname, username, email, phone, account_role) VALUES ($1, $2, $3, $4, $5, $6) RETURNING account_id';
@@ -149,7 +136,7 @@ registerRouter.post(
             request.body.phone,
             request.body.role,
         ];
-        // console.dir({ ...request.body, password: '******' });
+        console.dir({ ...request.body, password: '******' });
         pool.query(theQuery, values)
             .then((result) => {
                 //stash the account_id into the request object to be used in the next function
@@ -200,7 +187,6 @@ registerRouter.post(
                         expiresIn: '14 days', // expires in 14 days
                     }
                 );
-                console.dir({ ...request.body, password: '******' });
                 //We successfully added the user!
                 response.status(201).send({
                     accessToken,

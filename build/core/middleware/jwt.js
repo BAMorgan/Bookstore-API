@@ -16,9 +16,9 @@ const checkToken = (request, response, next) => {
             // Remove Bearer from string
             token = token.slice(7, token.length);
         }
-        jsonwebtoken_1.default.verify(token, config.secret, (err, decoded) => {
-            if (err) {
-                return response.status(403).json({
+        jsonwebtoken_1.default.verify(token, config.secret, (error, decoded) => {
+            if (error) {
+                response.status(403).json({
                     success: false,
                     message: 'Token is not valid',
                 });
@@ -30,7 +30,7 @@ const checkToken = (request, response, next) => {
         });
     }
     else {
-        return response.status(401).json({
+        response.status(401).json({
             success: false,
             message: 'Auth token is not supplied',
         });

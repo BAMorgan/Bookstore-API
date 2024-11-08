@@ -1,10 +1,10 @@
 import express, { Router } from 'express';
 
-import { messageRouter } from './message';
+import { libraryRouter } from './library';
 
 const openRoutes: Router = express.Router();
 
-openRoutes.use('/message', messageRouter);
-openRoutes.use('/library', messageRouter);
+openRoutes.use('/library', libraryRouter);
+
 
 export { openRoutes };
