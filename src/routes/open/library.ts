@@ -135,7 +135,8 @@ function myValidIsbn13Param(
     } else {
         console.error('Invalid or missing isbn13');
         response.status(400).send({
-            message: 'Invalid or missing ISBN - please refer to documentation',
+            message:
+                'Invalid or missing isbn13 - please refer to documentation',
         });
     }
 }
@@ -148,13 +149,13 @@ function myValidTitleParam(
     const title: string = request.params.title as string;
     if (
         validationFunctions.isStringProvided(title) &&
-        !validationFunctions.isNumber(title)
+        !validationFunctions.isNumberProvided(title)
     ) {
         next();
     } else {
         console.error('Invalid or missing title');
         response.status(400).send({
-            message: 'Invalid or missing Title - please refer to documentation',
+            message: 'Invalid or missing title - please refer to documentation',
         });
     }
 }
@@ -517,7 +518,7 @@ libraryRouter.get('/retrieve', (request: Request, response: Response) => {
  * @apiSuccess {number} entry.rating_avg The average rating of the book associated with <code>isbn13</code>
 
  *
- * @apiError (400: Invalid isbn13) {String} message "Invalid or missing isbn13  - please refer to documentation"
+ * @apiError (400: Invalid isbn13) {String} message "Invalid or missing isbn13 - please refer to documentation"
  * @apiError (404: Book Not Found) {string} message "No book associated with this isbn13 was found"
  *
  */
@@ -537,7 +538,8 @@ libraryRouter.get(
                     });
                 } else {
                     response.status(404).send({
-                        message: 'No book associated with this ISBN was found',
+                        message:
+                            'No book associated with this isbn13 was found',
                     });
                 }
             })
@@ -570,7 +572,7 @@ libraryRouter.get(
  * @apiSuccess {number} entry.rating_avg The average rating of the book associated with <code>title</code>
 
  *
- * @apiError (400: Invalid title) {String} message "Invalid or missing title  - please refer to documentation"
+ * @apiError (400: Invalid title) {String} message "Invalid or missing title - please refer to documentation"
  * @apiError (404: Book Not Found) {string} message "No book associated with this title was found"
  *
  */
@@ -586,7 +588,7 @@ libraryRouter.get(
             .then((result) => {
                 if (result.rowCount == 1) {
                     response.send({
-                        entries: result.rows[0],
+                        entry: result.rows[0],
                     });
                 } else {
                     response.status(404).send({
@@ -597,53 +599,6 @@ libraryRouter.get(
             .catch((error) => {
                 //log the error
                 console.error('DB Query error on GET by title');
-                console.error(error);
-                response.status(500).send({
-                    message: 'server error - contact support',
-                });
-            });
-    }
-);
-
-/**
- * @api {get} /library?rating_avg= Request to retrieve books by rating average
- *
- * @apiDescription Request to retrieve the information about all books with the given <code>rating_avg</code>
- *
- * @apiName RetrieveByRatingAvg
- * @apiGroup Library
- *
- * @apiQuery {number} rating_avg the rating_avg to look up.
- *
- * @apiSuccess {String[]} entries the aggregate of all entries as the following string:
- *      "{<code>title</code>} by <code>authors</code> - ISBN: <code>isbn13</code>, published in <code>publication_year</code>, average rating: <code>rating_avg</code>"
- *
- * @apiError (404: Book Not Found) {string} message "No book associated with this rating_avg was found"
- *
- */
-libraryRouter.get(
-    '/',
-    mwValidRatingAverageQuery,
-    (request: Request, response: Response) => {
-        const theQuery =
-            'SELECT isbn13, authors, publication_year, title, rating_avg FROM BOOKS where rating_avg = $1';
-        const values = [request.query.rating_avg];
-
-        pool.query(theQuery, values)
-            .then((result) => {
-                if (result.rowCount > 0) {
-                    response.send({
-                        entries: result.rows.map(format),
-                    });
-                } else {
-                    response.status(404).send({
-                        message: `No book associated with this rating was found`,
-                    });
-                }
-            })
-            .catch((error) => {
-                //log the error
-                console.error('DB Query error on GET by rating_avg');
                 console.error(error);
                 response.status(500).send({
                     message: 'server error - contact support',
@@ -896,11 +851,10 @@ libraryRouter.delete(
  * @apiSuccess {String[]} entries the aggregate of all entries as the following string:
  *      "{<code>title</code>} by <code>authors</code> - ISBN: <code>isbn13</code>, published in <code>publication_year</code>, average rating: <code>rating_avg</code>"
  *
- * @apiError (400: Invalid author) {String} message "Invalid or missing author  - please refer to documentation"
+ * @apiError (400: Invalid author) {String} message "Invalid or missing author - please refer to documentation"
  * @apiError (404: Book Not Found) {string} message "No book associated with this author was found"
  *
  */
-
 libraryRouter.get('/', (request: Request, response: Response, next) => {
     const publishedYear: string = request.query.publication_year as string;
     const ratingAvg: string = request.query.rating_avg as string;
@@ -967,7 +921,7 @@ function myValidPublicationYearQuery(
  * @apiSuccess {String[]} entries the aggregate of all entries as the following string:
  *      "{<code>title</code>} by <code>author</code> - ISBN: <code>isbn13</code>, published in <code>publication_year</code>, average rating: <code>rating_avg</code>"
  *
- * @apiError (400: Invalid publication year) {String} message "Invalid or missing publication_year  - please refer to documentation"
+ * @apiError (400: Invalid publication year) {String} message "Invalid or missing publication_year - please refer to documentation"
  * @apiError (404: Book Not Found) {string} message "No book associated with this publication year was found"
  *
  */
@@ -1019,6 +973,7 @@ libraryRouter.get('/', (request: Request, response: Response, next) => {
  * @apiSuccess {String[]} entries the aggregate of all entries as the following string:
  *      "{<code>title</code>} by <code>authors</code> - ISBN: <code>isbn13</code>, published in <code>publication_year</code>, average rating: <code>rating_avg</code>"
  *
+ * @apiError (400: Invalid rating_avg) {String} message "Invalid or missing rating_avg - please refer to documentation"
  * @apiError (404: Book Not Found) {string} message "No book associated with this rating_avg was found"
  *
  */
@@ -1038,7 +993,7 @@ libraryRouter.get(
                     });
                 } else {
                     response.status(404).send({
-                        message: `No book associated with this rating was found`,
+                        message: `No book associated with this rating_avg was found`,
                     });
                 }
             })
